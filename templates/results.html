@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Results</title>
+</head>
+<body>
+    <h1>Simulation Results</h1>
+    <h2>Visit Counts</h2>
+    <p>{{ visit_counts }}</p>
+
+    <h2>Plots</h2>
+    {% if wait_times_plot %}
+        <h3>Wait Times</h3>
+        <img src="{{ wait_times_plot }}" alt="Wait Times Plot">
+    {% endif %}
+    {% if processing_times_plot %}
+        <h3>Processing Times</h3>
+        <img src="{{ processing_times_plot }}" alt="Processing Times Plot">
+    {% endif %}
+    {% if visits_per_service_plot %}
+        <h3>Visits Per Service</h3>
+        <img src="{{ visits_per_service_plot }}" alt="Visits Per Service Plot">
+    {% endif %}
+    {% if average_wait_times_plot %}
+        <h3>Average Wait Times Per Service</h3>
+        <img src="{{ average_wait_times_plot }}" alt="Average Wait Times Plot">
+    {% endif %}
+    {% if average_service_times_plot %}
+        <h3>Average Service Times Per Service</h3>
+        <img src="{{ average_service_times_plot }}" alt="Average Service Times Plot">
+    {% endif %}
+
+    <h2>Logs</h2>
+    <a href="{{ logs }}">Download Logs</a>
+</body>
+</html>

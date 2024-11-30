@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Hospital Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        label, input {
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Run Hospital Simulation</h1>
+    <form method="POST" action="/run_simulation">
+        <div class="form-group">
+            <label for="num_patients">Number of Patients:</label>
+            <input type="number" id="num_patients" name="num_patients" value="50" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_registration_counters">Number of Registration Counters:</label>
+            <input type="number" id="num_registration_counters" name="num_registration_counters" value="3" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_doctors">Number of Doctors:</label>
+            <input type="number" id="num_doctors" name="num_doctors" value="2" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_pharmacy_counters">Number of Pharmacy Counters:</label>
+            <input type="number" id="num_pharmacy_counters" name="num_pharmacy_counters" value="2" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_billing_counters">Number of Billing Counters:</label>
+            <input type="number" id="num_billing_counters" name="num_billing_counters" value="2" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_xray_counters">Number of X-Ray Counters:</label>
+            <input type="number" id="num_xray_counters" name="num_xray_counters" value="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_scan_counters">Number of Scan Counters:</label>
+            <input type="number" id="num_scan_counters" name="num_scan_counters" value="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num_bedspaces">Number of Bedspaces:</label>
+            <input type="number" id="num_bedspaces" name="num_bedspaces" value="5" required>
+        </div>
+
+        <button type="submit">Run Simulation</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Simulation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Emergency Department Patient Flow Simulation</h1>
+        <form method="POST" action="/" class="mb-4">
+            <div class="form-group">
+                <label for="num_patients">Number of Patients:</label>
+                <input type="number" class="form-control" id="num_patients" name="num_patients" value="50" required>
+            </div>
+            <div class="form-group">
+                <label for="num_registration_counters">Number of Registration Counters:</label>
+                <input type="number" class="form-control" id="num_registration_counters" name="num_registration_counters" value="3" required>
+            </div>
+            <div class="form-group">
+                <label for="num_doctors">Number of Doctors:</label>
+                <input type="number" class="form-control" id="num_doctors" name="num_doctors" value="2" required>
+            </div>
+            <div class="form-group">
+                <label for="num_pharmacy_counters">Number of Pharmacy Counters:</label>
+                <input type="number" class="form-control" id="num_pharmacy_counters" name="num_pharmacy_counters" value="2" required>
+            </div>
+            <div class="form-group">
+                <label for="num_billing_counters">Number of Billing Counters:</label>
+                <input type="number" class="form-control" id="num_billing_counters" name="num_billing_counters" value="2" required>
+            </div>
+            <div class="form-group">
+                <label for="num_xray_counters">Number of X-Ray Counters:</label>
+                <input type="number" class="form-control" id="num_xray_counters" name="num_xray_counters" value="1" required>
+            </div>
+            <div class="form-group">
+                <label for="num_scan_counters">Number of Scan Counters:</label>
+                <input type="number" class="form-control" id="num_scan_counters" name="num_scan_counters" value="1" required>
+            </div>
+            <div class="form-group">
+                <label for="num_bedspaces">Number of Bedspaces:</label>
+                <input type="number" class="form-control" id="num_bedspaces" name="num_bedspaces" value="5" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Run Simulation</button>
+        </form>
+
+        {% if results %}
+        <div class="mt-5">
+            <h2>Simulation Results</h2>
+            <h3>Summary</h3>
+            <p><strong>Visit Counts:</strong></p>
+            <ul>
+                {% for service, count in results.visit_counts.items() %}
+                    <li>{{ service }}: {{ count }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Other Stats:</strong></p>
+            <ul>
+                <li>Average Wait Time: {{ results.summary.avg_wait_time }} minutes</li>
+                <li>Maximum Wait Time: {{ results.summary.max_wait_time }} minutes</li>
+                <li>Minimum Wait Time: {{ results.summary.min_wait_time }} minutes</li>
+                <li>Critical Patients: {{ results.summary.critical_patients }}</li>
+                <li>Non-Critical Patients: {{ results.summary.non_critical_patients }}</li>
+            </ul>
+
+            <h3>Plots</h3>
+            {% for plot_name, plot_url in results.plots.items() %}
+            <p><strong>{{ plot_name.replace('_', ' ').title() }}:</strong></p>
+            <img src="{{ plot_url }}" alt="{{ plot_name }}" class="img-fluid mb-3">
+            {% endfor %}
+
+            <h3>Logs</h3>
+            <a href="{{ results.logs }}" target="_blank">Download Logs</a>
+
+            <h3>Flow Data CSV Preview</h3>
+            {% if results.flow_data_csv %}
+            {{ results.flow_data_csv | safe }}
+            {% else %}
+            <p>No CSV data available.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
