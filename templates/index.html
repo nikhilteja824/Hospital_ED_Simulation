@@ -74,11 +74,28 @@
             <a href="{{ results.logs }}" target="_blank">Download Logs</a>
 
             <h3>Flow Data CSV Preview</h3>
-            {% if results.flow_data_csv %}
-            {{ results.flow_data_csv | safe }}
-            {% else %}
-            <p>No CSV data available.</p>
+            {% if results.csv_preview %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        {% for col in results.csv_preview[0].keys() %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in results.csv_preview %}
+                    <tr>
+                        {% for value in row.values() %}
+                        <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% endif %}
+            
+            
         </div>
         {% endif %}
     </div>

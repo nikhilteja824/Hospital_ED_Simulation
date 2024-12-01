@@ -428,7 +428,8 @@ def patient_flow(env, bedspaces, doctors, registration, xray, scan, dressing, in
     d1 = OldOP_decision()
     d2 = oldOP_scan_decision()
     criticality = assign_criticality()
-
+    flow[patient]["criticality"] = criticality
+    
     # Critical patients get bed allocation first
     if criticality == 'Level 1':
         total_wait_time += yield env.process(bedspace_allocation(env, bedspaces, patient, criticality, f))
@@ -661,7 +662,7 @@ def patient_flow(env, bedspaces, doctors, registration, xray, scan, dressing, in
     wait_times.append(total_wait_time)
     if end == 1:
         left_patients.append([patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')])
-
+ 
 
 def save_and_close_plot(path, fname):
     """Helper function to save the plot and close it."""
@@ -707,6 +708,46 @@ def plot_service_process_times(services, time, path, fname):
     plt.xlabel('Services')
     plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(time), np.min(time), np.max(time)))
     save_and_close_plot(path, fname)
+
+# def plot_patients_in_system(time_intervals, patients_in_system, path, fname):
+#     plt.figure(figsize=(10, 6))
+#     plt.plot(time_intervals, patients_in_system, marker="o", linestyle="-")
+#     plt.title("Number of Patients in System Over Time")
+#     plt.xlabel("Time (minutes)")
+#     plt.ylabel("Number of Patients")
+#     plt.yticks(range(0, max(patients_in_system) + 1))  # Ensure integer y-ticks only
+#     plt.grid(True)
+#     save_and_close_plot(path, fname)
+
+def plot_patients_in_system(time_intervals, patients_in_system, path, fname):
+    """
+    Plot the number of patients in the system over time with integer-only y-axis ticks.
+    """
+    plt.figure(figsize=(10, 6))
+
+    # Use plt.step for step-like plots
+    plt.step(
+        time_intervals, 
+        patients_in_system, 
+        where='post', 
+        linestyle='-', 
+        color='blue', 
+        linewidth=2
+    )
+
+    # Add labels, title, and grid
+    plt.title("Number of Patients in System Over Time")
+    plt.xlabel("Time (minutes)")
+    plt.ylabel("Number of Patients")
+    plt.grid(True)
+
+    # Force integer-only y-axis
+    plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+    # Save and close the plot
+    save_and_close_plot(path, fname)
+
+
 
 
 # import gspread
@@ -771,9 +812,16 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     bedspace = simpy.PriorityResource(env, capacity=NUM_BEDSPACES)
 
     # Output paths and directory setup
-    path = os.path.join(results_dir, str(current_index))
+    results_dir = os.path.join("static", "results")
+    path = results_dir
     os.makedirs(path, exist_ok=True)
     log_file_path = os.path.join(path, "logs.txt")
+
+    try:
+        with open(log_file_path, "w") as log_file:
+            log_file.write("Simulation log initialized.\n")  # Example log entry
+    except Exception as e:
+        print(f"Error writing log file: {e}")
 
     # Initialize data structures for metrics
 
@@ -787,6 +835,8 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     wait_times = []
     processing_times = []
     flow = {}
+    patients_in_system = []
+    time_intervals = []
 
     num_registration = 0
     num_consultation = 0
@@ -818,6 +868,45 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     inj_service_times = []
     bedspace_service_times = []
 
+    def monitor_system(env):
+        start_time = env.now  # Record simulation start time
+        while True:
+            # Calculate the relative time (in minutes) since the start of the simulation
+            relative_time = (env.now - start_time) / 60  # Convert seconds to minutes
+
+            total_patients_in_queues = (
+                len(registration.queue) +
+                len(doctors.queue) +
+                len(pharmacy.queue) +
+                len(billing.queue) +
+                len(scan.queue) +
+                len(xray.queue) +
+                len(dressing.queue) +
+                len(injection.queue)
+            )
+
+            total_patients_being_processed = (
+                registration.count +
+                doctors.count +
+                pharmacy.count +
+                billing.count +
+                scan.count +
+                xray.count +
+                dressing.count +
+                injection.count
+            )
+
+            total_patients = int(total_patients_in_queues + total_patients_being_processed)
+            patients_in_system.append(total_patients)
+            time_intervals.append(relative_time)  # Use relative time
+
+            # Check if simulation is done
+            if total_patients == 0 and env.peek() == float("inf"):
+                break
+
+            yield env.timeout(1)  # Monitor every 60 seconds
+
+    env.process(monitor_system(env))
     # Run the simulation
     with open(log_file_path, "w") as f:
         env.process(patient_arrival(env, bedspace, doctors, registration, xray, scan, dressing, injection, pharmacy, billing, f))
@@ -835,15 +924,15 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
         plot_visits(services, visits, path, 'num_visits_per_service.jpeg')
 
     # Save detailed data
-    np.savetxt(path + 'visits_per_service', visits)
+    np.savetxt(os.path.join(path, 'visits_per_service.txt'), visits)
     if any(reg_wait_times + cons_wait_times + phar_wait_times + dress_wait_times +
            xray_wait_times + scan_wait_times + bill_wait_times + inj_wait_times + bedspace_wait_times):
-        np.savetxt(path + 'wait_times_per_process.txt', reg_wait_times + cons_wait_times + phar_wait_times +
+        np.savetxt(os.path.join(path, 'wait_times_per_process.txt'), reg_wait_times + cons_wait_times + phar_wait_times +
                    dress_wait_times + xray_wait_times + scan_wait_times + bill_wait_times +
                    inj_wait_times + bedspace_wait_times)
     if any(reg_service_times + cons_service_times + phar_service_times + dress_service_times +
            xray_service_times + scan_service_times + bill_service_times + inj_service_times + bedspace_service_times):
-        np.savetxt(path + 'service_times_per_process.txt', reg_service_times + cons_service_times + phar_service_times +
+        np.savetxt(os.path.join(path, 'service_times_per_process.txt'), reg_service_times + cons_service_times + phar_service_times +
                    dress_service_times + xray_service_times + scan_service_times + bill_service_times +
                    inj_service_times + bedspace_service_times)
 
@@ -903,11 +992,28 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     if flow:
         with open(os.path.join(path, 'flow_data.json'), 'w') as fp:
             json.dump(flow, fp)
+
+        # Load JSON and ensure all keys are consistent across rows
         df = pd.read_json(os.path.join(path, 'flow_data.json'), orient='index')
-        df.to_csv(os.path.join(path, 'flow_data.csv'))
+
+        # Initialize missing columns (services) to "N/A"
+        all_services = ['Registration', 'Consultation', 'Pharmacy', 'Dressing', 'Xray', 'Scan', 'Billing', 'Injection', 'Bedspace Allocation']
+        for service in all_services:
+            if service not in df.columns:
+                df[service] = "N/A"
+
+        # Replace remaining NaN values with "N/A"
+        df.fillna("N/A", inplace=True)
+
+        # Save the cleaned DataFrame
+        df.reset_index(inplace=True)
+        df.rename(columns={"index": "Patient"}, inplace=True)
+        df.to_csv(os.path.join(path, 'flow_data.csv'), index=False)
     detailed_service_labels = ['Registration', 'Consultation', 'Pharmacy', 'Dressing', 'X-Ray', 'Scan', 'Billing', 'Injection', 'Bed']
     labeled_visit_counts = dict(zip(detailed_service_labels, visits))  # Create a labeled dictionary
 
+    if patients_in_system and time_intervals:
+        plot_patients_in_system(time_intervals, patients_in_system, path, "patients_in_system.jpeg")
 
     # Return results for UI
     return {
@@ -920,6 +1026,7 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
             "visits_per_service": os.path.join(path, 'num_visits_per_service.jpeg') if any(visits) else None,
             "average_wait_times_per_service": os.path.join(path, 'average_wait_times_per_service.jpeg') if wait_times else None,
             "average_service_times_per_service": os.path.join(path, 'average_service_times_per_service.jpeg') if reg_service_times else None,
+            "patients_in_system": os.path.join(path, "patients_in_system.jpeg") if patients_in_system else None,
         },
         "logs": log_file_path,
         "wait_times": wait_times,

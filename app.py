@@ -41,14 +41,25 @@ def index():
         os.rename(simulation_results["logs"], logs_path)
         logs_url = url_for('static', filename=os.path.relpath(logs_path, "static"))
 
-        # Load CSV preview
+        # Move CSV to the static folder for accessibility
         csv_path = simulation_results["flow_data_csv"]
-        csv_preview = None
-        if csv_path:
+        if csv_path and os.path.exists(csv_path):
             new_csv_path = os.path.join(app.config["UPLOAD_FOLDER"], os.path.basename(csv_path))
             os.rename(csv_path, new_csv_path)
-            csv_preview = pd.read_csv(new_csv_path).head(5).to_html(classes="table table-striped", index=False)
+            csv_url = url_for('static', filename=os.path.relpath(new_csv_path, "static"))
+        else:
+            csv_url = None
 
+        # Load CSV for preview
+
+        csv_preview = None
+        if new_csv_path and os.path.exists(new_csv_path):
+            try:
+                csv_preview = pd.read_csv(new_csv_path).head(5).to_dict(orient="records")
+            except Exception as e:
+                print(f"Error reading CSV: {e}")
+
+        logs_url = url_for('static', filename=os.path.relpath(logs_path, "static"))
         # Prepare results dictionary
         # Define service labels
         services = ['Registration', 'Consultation', 'Pharmacy', 'Dressing', 'X-Ray', 'Scan', 'Billing', 'Injection', 'Bed']
@@ -59,7 +70,7 @@ def index():
             "flow_data_csv": simulation_results["flow_data_csv"],
             "visit_counts" : simulation_results["visit_counts"],  # Combine service names and counts
             "plots": plot_paths,
-            "logs": os.path.relpath(logs_path, "static"),
+            "logs": logs_url,
             "summary": {
                 "avg_wait_time": simulation_results["summary"]["avg_wait_time"],
                 "max_wait_time": simulation_results["summary"]["max_wait_time"],
