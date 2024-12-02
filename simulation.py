@@ -137,11 +137,11 @@ def bedspace_allocation(env, bedspace, patient, criticality, f):
 # Create the consultation process
 def consultation(env, doctors, patient, f):
     global end, exit_time, num_consultation, cons_wait_times, cons_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 0)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 0)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_consultation += 1
     print("%s arriving at the consultation room at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -174,11 +174,11 @@ def consultation(env, doctors, patient, f):
 # Create the pharmacy process
 def pharmacy_process(env, pharmacy, patient, f):
     global end, exit_time, num_pharmacy, phar_wait_times, phar_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_pharmacy += 1
     print("%s arriving at the pharmacy at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -211,11 +211,11 @@ def dressing_process(env, dressing, patient, f):
     global end, exit_time, num_dressing, dress_wait_times, dress_service_times
 
     # Check if time exceeds hospital closing time
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0  # Quit the service if time is greater than 6:45 PM
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0  # Quit the service if time is greater than 6:45 PM
 
     # Increment the dressing counter
     num_dressing += 1
@@ -271,11 +271,11 @@ def dressing_process(env, dressing, patient, f):
 # Create the xray process
 def xray_process(env, xray, patient, f):
     global end, exit_time, num_xray, xray_wait_times, xray_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_xray += 1
     print("%s arriving at the xray room at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -307,11 +307,11 @@ def xray_process(env, xray, patient, f):
 # Create the scan process
 def scan_process(env, scan, patient, f):
     global end, exit_time, num_scan, scan_wait_times, scan_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_scan += 1
     print("%s arriving at the scan room at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -343,11 +343,11 @@ def scan_process(env, scan, patient, f):
 # Create the billing process
 def billing_process(env, billing, patient, f):
     global end, exit_time, num_billing, bill_wait_times, bill_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_billing += 1
     print("%s arriving at the billing room at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -379,11 +379,11 @@ def billing_process(env, billing, patient, f):
 # Create the injection process
 def injection_process(env, injection, patient, f):
     global end, exit_time, num_injection, inj_wait_times, inj_service_times
-    if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
-        print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
-        end = 1
-        exit_time = env.now
-        return 0
+    # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
+    #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
+    #     end = 1
+    #     exit_time = env.now
+    #     return 0
     num_injection += 1
     print("%s arriving at the injection room at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -660,8 +660,8 @@ def patient_flow(env, bedspaces, doctors, registration, xray, scan, dressing, in
     e_time = env.now
     processing_times.append((e_time - s_time) / 60)
     wait_times.append(total_wait_time)
-    if end == 1:
-        left_patients.append([patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')])
+    # if end == 1:
+    #     left_patients.append([patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')])
  
 
 def save_and_close_plot(path, fname):
@@ -758,6 +758,8 @@ init = pd.read_csv('init.csv')
 
 def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_arrivals_path="baseline_intervals.txt", results_dir="results"):
     # Load initialization and baseline intervals
+    # global left_patients
+    # left_patients = []  # Initialize the list to track patients who leave
     init = pd.read_csv(init_csv_path)
     baseline_arrivals = pd.read_csv(baseline_arrivals_path, header=None).values.flatten()
 
