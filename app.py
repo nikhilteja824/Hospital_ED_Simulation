@@ -13,6 +13,7 @@ def index():
         # Get form data
         inputs = {
             "NUM_PATIENTS": int(request.form["num_patients"]),
+            # "ARRIVAL_RATE": int(request.form["arrival_rate"]),
             "NUM_REGISTRATION_COUNTERS": int(request.form["num_registration_counters"]),
             "NUM_DOCTORS": int(request.form["num_doctors"]),
             "NUM_PHARMACY_COUNTERS": int(request.form["num_pharmacy_counters"]),

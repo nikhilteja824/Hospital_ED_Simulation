@@ -12,35 +12,39 @@
         <form method="POST" action="/" class="mb-4">
             <div class="form-group">
                 <label for="num_patients">Number of Patients:</label>
-                <input type="number" class="form-control" id="num_patients" name="num_patients" value="50" required>
+                <input type="number" class="form-control" id="num_patients" name="num_patients" value="100" required>
             </div>
+            <!-- <div class="form-group">
+                <label for="arrival_rate">Arrival Rate of Patients:</label>
+                <input type="number" class="form-control" id="arrival_rate" name="arrival_rate" value="5" required>
+            </div> -->
             <div class="form-group">
                 <label for="num_registration_counters">Number of Registration Counters:</label>
-                <input type="number" class="form-control" id="num_registration_counters" name="num_registration_counters" value="3" required>
+                <input type="number" class="form-control" id="num_registration_counters" name="num_registration_counters" value="5" required>
             </div>
             <div class="form-group">
                 <label for="num_doctors">Number of Doctors:</label>
-                <input type="number" class="form-control" id="num_doctors" name="num_doctors" value="2" required>
+                <input type="number" class="form-control" id="num_doctors" name="num_doctors" value="15" required>
             </div>
             <div class="form-group">
                 <label for="num_pharmacy_counters">Number of Pharmacy Counters:</label>
-                <input type="number" class="form-control" id="num_pharmacy_counters" name="num_pharmacy_counters" value="2" required>
+                <input type="number" class="form-control" id="num_pharmacy_counters" name="num_pharmacy_counters" value="3" required>
             </div>
             <div class="form-group">
                 <label for="num_billing_counters">Number of Billing Counters:</label>
-                <input type="number" class="form-control" id="num_billing_counters" name="num_billing_counters" value="2" required>
+                <input type="number" class="form-control" id="num_billing_counters" name="num_billing_counters" value="4" required>
             </div>
             <div class="form-group">
                 <label for="num_xray_counters">Number of X-Ray Counters:</label>
-                <input type="number" class="form-control" id="num_xray_counters" name="num_xray_counters" value="1" required>
+                <input type="number" class="form-control" id="num_xray_counters" name="num_xray_counters" value="3" required>
             </div>
             <div class="form-group">
                 <label for="num_scan_counters">Number of Scan Counters:</label>
-                <input type="number" class="form-control" id="num_scan_counters" name="num_scan_counters" value="1" required>
+                <input type="number" class="form-control" id="num_scan_counters" name="num_scan_counters" value="4" required>
             </div>
             <div class="form-group">
                 <label for="num_bedspaces">Number of Bedspaces:</label>
-                <input type="number" class="form-control" id="num_bedspaces" name="num_bedspaces" value="5" required>
+                <input type="number" class="form-control" id="num_bedspaces" name="num_bedspaces" value="15" required>
             </div>
             <button type="submit" class="btn btn-primary">Run Simulation</button>
         </form>
@@ -59,7 +63,7 @@
             <ul>
                 <li>Average Wait Time: {{ results.summary.avg_wait_time }} minutes</li>
                 <li>Maximum Wait Time: {{ results.summary.max_wait_time }} minutes</li>
-                <li>Minimum Wait Time: {{ results.summary.min_wait_time }} minutes</li>
+                <!-- <li>Minimum Wait Time: {{ results.summary.min_wait_time }} minutes</li> -->
                 <li>Critical Patients: {{ results.summary.critical_patients }}</li>
                 <li>Non-Critical Patients: {{ results.summary.non_critical_patients }}</li>       
             </ul>

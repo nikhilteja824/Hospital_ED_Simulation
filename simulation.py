@@ -25,18 +25,52 @@ from scipy.interpolate import interp1d
 import pandas as pd
 import os
 import json
+import seaborn as sns
+
+
+def generate_interarrival_times(num_patients, lambda_rate=1):
+    """
+    Generate interarrival times using an exponential distribution.
+
+    Args:
+    - num_patients (int): Total number of patients.
+    - lambda_rate (float): Rate parameter (λ) in events per minute. 
+                           (e.g., λ = 2 means 2 patients arrive per minute).
+
+    Returns:
+    - interarrival_times (list): Generated interarrival times (in seconds).
+    """
+    # Generate interarrival times as exponential random variables
+    interarrival_times = np.random.exponential(scale=1/lambda_rate, size=num_patients)
+
+    # Convert times from minutes to seconds for the simulation
+    interarrival_times = (interarrival_times * 60).astype(int)
+
+    return interarrival_times
+
 
 # Generate intervals using interpolation
 def interval_gen(num_patients):
-    x_data = np.arange(len(BASELINE_ARRIVALS))
-    y_data = np.array(BASELINE_ARRIVALS).reshape(len(BASELINE_ARRIVALS),)
+    # x_data = np.arange(len(BASELINE_ARRIVALS))
+    # y_data = np.array(BASELINE_ARRIVALS).reshape(len(BASELINE_ARRIVALS),)
 
-    # Interpolate to 100 values
-    interp = interp1d(x_data, y_data, kind='cubic')
-    x_interp = np.linspace(0, len(BASELINE_ARRIVALS)-1, num_patients)
-    y_interp = interp(x_interp)
-    y_out = np.interp(y_interp, (0, max(y_data)), (0, max(y_data)))
-    return np.asarray(y_out, dtype = 'int')
+    # # Interpolate to 100 values
+    # interp = interp1d(x_data, y_data, kind='cubic')
+    # x_interp = np.linspace(0, len(BASELINE_ARRIVALS)-1, num_patients)
+    # y_interp = interp(x_interp)
+    # y_out = np.interp(y_interp, (0, max(y_data)), (0, max(y_data)))
+    # return np.asarray(y_out, dtype = 'int')
+    """
+    Generate interarrival times dynamically for the simulation.
+
+    Args:
+    - num_patients (int): Total number of patients.
+
+    Returns:
+    - interarrival_times (list): Generated interarrival times (in seconds).
+    """
+    lambda_rate = 0.3  # Example: 1 patient arrives per minute
+    return generate_interarrival_times(num_patients, lambda_rate)
 
 
 # Helper function to generate random consultation decisions
@@ -59,7 +93,7 @@ def OldOP_decision():
 
 # Helper: Assign criticality
 def assign_criticality():
-    return random.choices(['Level 1', 'Level 2', 'Level 3'], weights=[0.2, 0.5, 0.3])[0]
+    return random.choices(['Level 1', 'Level 2', 'Level 3'], weights=[0.3, 0.4, 0.3])[0]
 
 # Helper: Assign category
 def p_type():
@@ -709,21 +743,13 @@ def plot_service_process_times(services, time, path, fname):
     plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(time), np.min(time), np.max(time)))
     save_and_close_plot(path, fname)
 
-# def plot_patients_in_system(time_intervals, patients_in_system, path, fname):
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(time_intervals, patients_in_system, marker="o", linestyle="-")
-#     plt.title("Number of Patients in System Over Time")
-#     plt.xlabel("Time (minutes)")
-#     plt.ylabel("Number of Patients")
-#     plt.yticks(range(0, max(patients_in_system) + 1))  # Ensure integer y-ticks only
-#     plt.grid(True)
-#     save_and_close_plot(path, fname)
+
 
 def plot_patients_in_system(time_intervals, patients_in_system, path, fname):
     """
     Plot the number of patients in the system over time with integer-only y-axis ticks.
     """
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(14, 8))
 
     # Use plt.step for step-like plots
     plt.step(
@@ -752,9 +778,6 @@ def plot_patients_in_system(time_intervals, patients_in_system, path, fname):
 
 # import gspread
 # from google.oauth2.service_account import Credentials
-
-BASELINE_ARRIVALS = pd.read_csv('baseline_intervals.txt')
-init = pd.read_csv('init.csv')
 
 def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_arrivals_path="baseline_intervals.txt", results_dir="results"):
     # Load initialization and baseline intervals
@@ -789,6 +812,7 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
 
     # From UI
     NUM_PATIENTS = ui_inputs["NUM_PATIENTS"]
+    # ARRIVAL_RATE = ui_inputs["ARRIVAL_RATE"]
     NUM_REGISTRATION_COUNTERS = ui_inputs["NUM_REGISTRATION_COUNTERS"]
     NUM_DOCTORS = ui_inputs["NUM_DOCTORS"]
     NUM_PHARMACY_COUNTERS = ui_inputs["NUM_PHARMACY_COUNTERS"]
@@ -870,45 +894,97 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     inj_service_times = []
     bedspace_service_times = []
 
-    def monitor_system(env):
+    
+    def plot_patient_flow_heatmap(service_counts, interval, path, fname):
+        """
+        Plot a heatmap of patient flow through services over time.
+
+        Args:
+        - service_counts: Dictionary with service names as keys and patient counts over time as values.
+        - interval: Monitoring interval in seconds.
+        - path: Directory to save the plot.
+        - fname: File name for the saved plot.
+        """
+        # Convert service counts into a 2D array for the heatmap
+        services = list(service_counts.keys())
+        data = np.array([service_counts[service] for service in services])
+
+        # Generate time steps for the heatmap
+        num_intervals = data.shape[1]
+        time_steps = np.arange(0, num_intervals * interval, interval) / 60  # Convert to minutes
+
+        # Plot the heatmap
+        plt.figure(figsize=(12, 8))
+        sns.heatmap(data, cmap="YlGnBu", xticklabels=10, yticklabels=services)
+        plt.xlabel("Time (minutes)")
+        plt.ylabel("Services")
+        plt.title("Patient Flow Heatmap")
+        save_and_close_plot(path, fname)
+
+
+
+
+        
+
+    def monitor_system(env, resources, patients_in_system, time_intervals, service_counts, interval=60):
+        """
+        Monitor the number of patients in the system and the flow through services for the heatmap.
+        
+        Args:
+        - env: SimPy environment.
+        - resources: Dictionary of service names and their corresponding SimPy resources.
+        - patients_in_system: List to track the total number of patients in the system over time.
+        - time_intervals: List to track the time intervals for monitoring.
+        - service_counts: Dictionary to track patient counts for each service for heatmap data.
+        - interval: Monitoring interval in seconds (default: 60 seconds).
+        """
         start_time = env.now  # Record simulation start time
+
         while True:
             # Calculate the relative time (in minutes) since the start of the simulation
             relative_time = (env.now - start_time) / 60  # Convert seconds to minutes
 
-            total_patients_in_queues = (
-                len(registration.queue) +
-                len(doctors.queue) +
-                len(pharmacy.queue) +
-                len(billing.queue) +
-                len(scan.queue) +
-                len(xray.queue) +
-                len(dressing.queue) +
-                len(injection.queue)
-            )
-
-            total_patients_being_processed = (
-                registration.count +
-                doctors.count +
-                pharmacy.count +
-                billing.count +
-                scan.count +
-                xray.count +
-                dressing.count +
-                injection.count
-            )
-
+            # Calculate total patients in queues and being processed
+            total_patients_in_queues = sum(len(resource.queue) for resource in resources.values())
+            total_patients_being_processed = sum(resource.count for resource in resources.values())
             total_patients = int(total_patients_in_queues + total_patients_being_processed)
+
+            # Track the total number of patients in the system
             patients_in_system.append(total_patients)
-            time_intervals.append(relative_time)  # Use relative time
+            time_intervals.append(relative_time)  # Use relative time for plotting
+
+            # Track the current patient count for each service
+            for service_name, resource in resources.items():
+                if service_name not in service_counts:
+                    service_counts[service_name] = []
+                service_counts[service_name].append(resource.count + len(resource.queue))  # Count in process + in queue
 
             # Check if simulation is done
             if total_patients == 0 and env.peek() == float("inf"):
                 break
 
-            yield env.timeout(1)  # Monitor every 60 seconds
+            yield env.timeout(interval)  # Monitor every `interval` seconds
 
-    env.process(monitor_system(env))
+    # Resources dictionary for tracking
+    resources = {
+        "Registration": registration,
+        "Doctors": doctors,
+        "Pharmacy": pharmacy,
+        "Billing": billing,
+        "Scan": scan,
+        "Xray": xray,
+        "Dressing": dressing,
+        "Injection": injection,
+    }
+
+    # Lists and dictionaries for tracking
+    patients_in_system = []
+    time_intervals = []
+    service_counts = {}
+
+    # Start the monitoring process
+    env.process(monitor_system(env, resources, patients_in_system, time_intervals, service_counts, interval=60))
+
     # Run the simulation
     with open(log_file_path, "w") as f:
         env.process(patient_arrival(env, bedspace, doctors, registration, xray, scan, dressing, injection, pharmacy, billing, f))
@@ -1016,6 +1092,8 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
 
     if patients_in_system and time_intervals:
         plot_patients_in_system(time_intervals, patients_in_system, path, "patients_in_system.jpeg")
+    
+    plot_patient_flow_heatmap(service_counts, interval=60, path=path, fname="patient_flow_heatmap.jpeg")
 
     # Return results for UI
     return {
@@ -1029,6 +1107,7 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
             "average_wait_times_per_service": os.path.join(path, 'average_wait_times_per_service.jpeg') if wait_times else None,
             "average_service_times_per_service": os.path.join(path, 'average_service_times_per_service.jpeg') if reg_service_times else None,
             "patients_in_system": os.path.join(path, "patients_in_system.jpeg") if patients_in_system else None,
+            "patient_flow_heatmap": os.path.join(path, "patient_flow_heatmap.jpeg") if service_counts else None,
         },
         "logs": log_file_path,
         "wait_times": wait_times,
