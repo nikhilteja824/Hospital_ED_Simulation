@@ -73,9 +73,9 @@ def index():
             "plots": plot_paths,
             "logs": logs_url,
             "summary": {
-                "avg_wait_time": simulation_results["summary"]["avg_wait_time"],
-                "max_wait_time": simulation_results["summary"]["max_wait_time"],
-                "min_wait_time": simulation_results["summary"]["min_wait_time"],
+                "avg_delay_time": simulation_results["summary"]["avg_delay_time"],
+                "max_delay_time": simulation_results["summary"]["max_delay_time"],
+                "min_delay_time": simulation_results["summary"]["min_delay_time"],
                 "critical_patients": simulation_results["summary"]["critical_patients"],
                 "non_critical_patients": simulation_results["summary"]["non_critical_patients"]
             },

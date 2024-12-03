@@ -69,7 +69,7 @@ def interval_gen(num_patients):
     Returns:
     - interarrival_times (list): Generated interarrival times (in seconds).
     """
-    lambda_rate = 0.3  # Example: 1 patient arrives per minute
+    lambda_rate = 0.3
     return generate_interarrival_times(num_patients, lambda_rate)
 
 
@@ -111,7 +111,7 @@ def patient_arrival(env, bedspaces, doctors, registration, xray, scan, dressing,
 
 # Create the registration process
 def registration_process(env, registration, patient, f):
-    global end, num_registration, reg_wait_times, reg_service_times
+    global end, num_registration, reg_delay_times, reg_service_times
     num_registration += 1
     print("%s arriving at the registration desk at %s." % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -123,23 +123,23 @@ def registration_process(env, registration, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing registration process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the registration desk" % (patient, total_wait_time), file=f)
-    reg_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the registration desk" % (patient, total_delay_time), file=f)
+    reg_delay_times.append(total_delay_time)
     reg_service_times.append(processing_time)
     flow[patient].update({
         'Registration': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 # Create the bedspace allocation process
 def bedspace_allocation(env, bedspace, patient, criticality, f):
-    global num_bedspace, bedspace_wait_times, bedspace_service_times
+    global num_bedspace, bedspace_delay_times, bedspace_service_times
     num_bedspace += 1
     print("%s arriving for bed allocation with %s criticality at %s." % (patient, criticality, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     arrival_time = env.now
@@ -153,24 +153,24 @@ def bedspace_allocation(env, bedspace, patient, criticality, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing bed allocation process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %.2f minutes for bed allocation." % (patient, total_wait_time), file=f)
-    bedspace_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %.2f minutes for bed allocation." % (patient, total_delay_time), file=f)
+    bedspace_delay_times.append(total_delay_time)
     bedspace_service_times.append(processing_time)
     flow[patient].update({
         'Bedspace Allocation': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time)),
+            'delay': str(datetime.timedelta(minutes=total_delay_time)),
             'occupancy': f"{processing_time:.2f} seconds"
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 # Create the consultation process
 def consultation(env, doctors, patient, f):
-    global end, exit_time, num_consultation, cons_wait_times, cons_service_times
+    global end, exit_time, num_consultation, cons_delay_times, cons_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 0)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -189,25 +189,25 @@ def consultation(env, doctors, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing consultation with a doctor at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the consultation room" % (patient, total_wait_time), file=f)
-    cons_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the consultation room" % (patient, total_delay_time), file=f)
+    cons_delay_times.append(total_delay_time)
     cons_service_times.append(processing_time)
     flow[patient].update({
         'Consultation': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 # Repeat similar updates for all remaining processes
 
 # Create the pharmacy process
 def pharmacy_process(env, pharmacy, patient, f):
-    global end, exit_time, num_pharmacy, phar_wait_times, phar_service_times
+    global end, exit_time, num_pharmacy, phar_delay_times, phar_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -226,23 +226,23 @@ def pharmacy_process(env, pharmacy, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing pharmacy process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the pharmacy" % (patient, total_wait_time), file=f)
-    phar_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the pharmacy" % (patient, total_delay_time), file=f)
+    phar_delay_times.append(total_delay_time)
     phar_service_times.append(processing_time)
     flow[patient].update({
         'Pharmacy': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 # Create the dressing process
 def dressing_process(env, dressing, patient, f):
-    global end, exit_time, num_dressing, dress_wait_times, dress_service_times
+    global end, exit_time, num_dressing, dress_delay_times, dress_service_times
 
     # Check if time exceeds hospital closing time
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
@@ -267,7 +267,7 @@ def dressing_process(env, dressing, patient, f):
 
     # Request a dressing resource
     with dressing.request() as req:
-        yield req  # Wait until the resource is available
+        yield req  # Delay until the resource is available
 
         # Log the start time
         start_time = env.now
@@ -280,31 +280,31 @@ def dressing_process(env, dressing, patient, f):
         finish_time = env.now
         print("%s finishing dressing process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
 
-    # Calculate and log the total wait time
-    total_wait_time = (start_time - arrival_time) / 60  # Convert seconds to minutes
-    print("%s waited %.2f minutes at the dressing desk" % (patient, total_wait_time), file=f)
+    # Calculate and log the total delay time
+    total_delay_time = (start_time - arrival_time) / 60  # Convert seconds to minutes
+    print("%s delayed %.2f minutes at the dressing desk" % (patient, total_delay_time), file=f)
 
-    # Update wait times and service times
-    dress_wait_times.append(total_wait_time)
+    # Update delay times and service times
+    dress_delay_times.append(total_delay_time)
     dress_service_times.append(processing_time)
 
-    # Update the flow dictionary with timestamps and wait time
+    # Update the flow dictionary with timestamps and delay time
     flow[patient].update({
         'Dressing': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
 
-    return total_wait_time
+    return total_delay_time
 
 
 
 # Create the xray process
 def xray_process(env, xray, patient, f):
-    global end, exit_time, num_xray, xray_wait_times, xray_service_times
+    global end, exit_time, num_xray, xray_delay_times, xray_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -323,24 +323,24 @@ def xray_process(env, xray, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing xray process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the xray room" % (patient, total_wait_time), file=f)
-    xray_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the xray room" % (patient, total_delay_time), file=f)
+    xray_delay_times.append(total_delay_time)
     xray_service_times.append(processing_time)
     flow[patient].update({
         'Xray': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 
 # Create the scan process
 def scan_process(env, scan, patient, f):
-    global end, exit_time, num_scan, scan_wait_times, scan_service_times
+    global end, exit_time, num_scan, scan_delay_times, scan_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -359,24 +359,24 @@ def scan_process(env, scan, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing scan process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the scan room" % (patient, total_wait_time), file=f)
-    scan_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the scan room" % (patient, total_delay_time), file=f)
+    scan_delay_times.append(total_delay_time)
     scan_service_times.append(processing_time)
     flow[patient].update({
         'Scan': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 
 # Create the billing process
 def billing_process(env, billing, patient, f):
-    global end, exit_time, num_billing, bill_wait_times, bill_service_times
+    global end, exit_time, num_billing, bill_delay_times, bill_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -395,24 +395,24 @@ def billing_process(env, billing, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing billing process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the billing room" % (patient, total_wait_time), file=f)
-    bill_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the billing room" % (patient, total_delay_time), file=f)
+    bill_delay_times.append(total_delay_time)
     bill_service_times.append(processing_time)
     flow[patient].update({
         'Billing': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 
 # Create the injection process
 def injection_process(env, injection, patient, f):
-    global end, exit_time, num_injection, inj_wait_times, inj_service_times
+    global end, exit_time, num_injection, inj_delay_times, inj_service_times
     # if env.now > datetime.datetime.combine(datetime.date.today(), datetime.time(18, 45)).timestamp():
     #     print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
     #     end = 1
@@ -431,25 +431,25 @@ def injection_process(env, injection, patient, f):
         yield env.timeout(processing_time)
         finish_time = env.now
         print("%s finishing injection process at %s." % (patient, datetime.datetime.fromtimestamp(finish_time).strftime('%X %p')), file=f)
-    total_wait_time = (start_time - arrival_time) / 60
-    print("%s waited %s minutes at the injection room" % (patient, total_wait_time), file=f)
-    inj_wait_times.append(total_wait_time)
+    total_delay_time = (start_time - arrival_time) / 60
+    print("%s delayed %s minutes at the injection room" % (patient, total_delay_time), file=f)
+    inj_delay_times.append(total_delay_time)
     inj_service_times.append(processing_time)
     flow[patient].update({
         'Injection': {
             'arrival': datetime.datetime.fromtimestamp(arrival_time).strftime('%X %p'),
             'start': datetime.datetime.fromtimestamp(start_time).strftime('%X %p'),
             'finish': datetime.datetime.fromtimestamp(finish_time).strftime('%X %p'),
-            'wait': str(datetime.timedelta(minutes=total_wait_time))
+            'delay': str(datetime.timedelta(minutes=total_delay_time))
         }
     })
-    return total_wait_time
+    return total_delay_time
 
 # Define patient flow
 def patient_flow(env, bedspaces, doctors, registration, xray, scan, dressing, injection, pharmacy, billing, patient, f):
     global end, exit_time
     patient_type = p_type()
-    total_wait_time = 0
+    total_delay_time = 0
     s_time = env.now
     end = 0
     flow[patient] = {}
@@ -466,234 +466,234 @@ def patient_flow(env, bedspaces, doctors, registration, xray, scan, dressing, in
     
     # Critical patients get bed allocation first
     if criticality == 'Level 1':
-        total_wait_time += yield env.process(bedspace_allocation(env, bedspaces, patient, criticality, f))
-        total_wait_time += yield env.process(registration_process(env, registration, patient, f))
+        total_delay_time += yield env.process(bedspace_allocation(env, bedspaces, patient, criticality, f))
+        total_delay_time += yield env.process(registration_process(env, registration, patient, f))
     else:  # Non-critical patients: Registration first
-        total_wait_time += yield env.process(registration_process(env, registration, patient, f))
-        total_wait_time += yield env.process(bedspace_allocation(env, bedspaces, patient, criticality, f))
+        total_delay_time += yield env.process(registration_process(env, registration, patient, f))
+        total_delay_time += yield env.process(bedspace_allocation(env, bedspaces, patient, criticality, f))
     if end == 0:
       # Patient flow based on type
       if patient_type == 'NewOP':
           if d0 == 0:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d0 == 1:
               print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
           elif d0 == 2:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d0 == 3:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d0 == 4:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
           elif d0 == 5:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d0 == 6:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d0 == 7:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(injection_process(env, injection, patient, f))
+                  total_delay_time += yield env.process(injection_process(env, injection, patient, f))
           elif d0 == 8:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(scan_process(env, scan, patient, f))
+                  total_delay_time += yield env.process(scan_process(env, scan, patient, f))
           elif d0 == 9:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
           elif d0 == 10:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(scan_process(env, scan, patient, f))
+                  total_delay_time += yield env.process(scan_process(env, scan, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
 
       elif patient_type == 'OldOP':
           if d1 == 0:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d1 == 1:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d1 == 2:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d1 == 3:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d1 == 4:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
           elif d1 == 5:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d1 == 6:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d1 == 7:
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(injection_process(env, injection, patient, f))
+                  total_delay_time += yield env.process(injection_process(env, injection, patient, f))
           elif d1 == 8:
               # Incomplete flow
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
           elif d1 == 9:
               # Incomplete flow
               print("%s left the hospital at %s" % (patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')), file=f)
 
       elif patient_type == 'OldOPScan':
-          total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+          total_delay_time += yield env.process(billing_process(env, billing, patient, f))
           if d2 == 0:
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(dressing_process(env, dressing, patient, f))
+                  total_delay_time += yield env.process(dressing_process(env, dressing, patient, f))
           elif d2 == 1:
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(consultation(env, doctors, patient, f))
+                  total_delay_time += yield env.process(consultation(env, doctors, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d2 == 2:
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(billing_process(env, billing, patient, f))
+                  total_delay_time += yield env.process(billing_process(env, billing, patient, f))
               if end == 0:
-                  total_wait_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
+                  total_delay_time += yield env.process(pharmacy_process(env, pharmacy, patient, f))
           elif d2 == 3:
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
           elif d2 == 4:
               if end == 0:
-                  total_wait_time += yield env.process(scan_process(env, scan, patient, f))
+                  total_delay_time += yield env.process(scan_process(env, scan, patient, f))
 
       elif patient_type == 'IP':
           ip_d = ip_decision()
           if ip_d == 1:
               if end == 0:
-                  total_wait_time += yield env.process(scan_process(env, scan, patient, f))
+                  total_delay_time += yield env.process(scan_process(env, scan, patient, f))
           else:
               if end == 0:
-                  total_wait_time += yield env.process(xray_process(env, xray, patient, f))
+                  total_delay_time += yield env.process(xray_process(env, xray, patient, f))
 
     # End processing and log times
     e_time = env.now
     processing_times.append((e_time - s_time) / 60)
-    wait_times.append(total_wait_time)
+    delay_times.append(total_delay_time)
     # if end == 1:
     #     left_patients.append([patient, datetime.datetime.fromtimestamp(env.now).strftime('%X %p')])
  
@@ -703,12 +703,12 @@ def save_and_close_plot(path, fname):
     plt.savefig(os.path.join(path, fname), bbox_inches='tight')
     plt.close()
 
-def plot_wait_times(wait_times, path, fname):
-    """Plot patient wait times."""
-    plt.plot(wait_times)
-    plt.ylabel('Wait Time (minutes)')
+def plot_delay_times(delay_times, path, fname):
+    """Plot patient delay times."""
+    plt.plot(delay_times)
+    plt.ylabel('Delay Time (minutes)')
     plt.xlabel('Patient ID')
-    plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(wait_times), np.min(wait_times), np.max(wait_times)))
+    plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(delay_times), np.min(delay_times), np.max(delay_times)))
     save_and_close_plot(path, fname)
 
 def plot_process_times(process_times, path, fname):
@@ -727,10 +727,10 @@ def plot_visits(services, visits, path, fname):
     plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(visits), np.min(visits), np.max(visits)))
     save_and_close_plot(path, fname)
 
-def plot_service_wait_times(services, time, path, fname):
-    """Plot average wait times per service."""
+def plot_service_delay_times(services, time, path, fname):
+    """Plot average delay times per service."""
     plt.bar(services, time)
-    plt.ylabel('Avg Wait Time (minutes)')
+    plt.ylabel('Avg Delay Time (minutes)')
     plt.xlabel('Services')
     plt.title('Avg: {:.2f}, Min: {:.2f}, Max: {:.2f}'.format(np.average(time), np.min(time), np.max(time)))
     save_and_close_plot(path, fname)
@@ -791,11 +791,11 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     global NUM_PHARMACY_COUNTERS, PHARMACY_TIME, NUM_BILLING_COUNTERS, BILLING_TIME
     global NUM_XRAY_COUNTERS, XRAY_TIME, NUM_SCAN_COUNTERS, SCAN_TIME
     global NUM_BEDSPACES, BEDSPACE_TIME, NUM_DRESSING_COUNTERS, NUM_INJECTION_COUNTERS
-    global DRESSING_TIME, INJECTION_TIME, START_TIME, SERVICE_START_TIME, MAX_WAIT_TIME
+    global DRESSING_TIME, INJECTION_TIME, START_TIME, SERVICE_START_TIME, MAX_DELAY_TIME
 
     START_TIME = datetime.time(7, 30)  # 7:30 AM
     SERVICE_START_TIME = datetime.time(8, 0)  # 8:00 AM
-    MAX_WAIT_TIME = 35 * 60  # 35 minutes in seconds
+    MAX_DELAY_TIME = 35 * 60  # 35 minutes in seconds
 
     # From init.csv
     REGISTRATION_TIME = init['REGISTRATION_TIME'][current_index] * 60
@@ -852,13 +852,13 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     # Initialize data structures for metrics
 
     global num_registration, num_consultation, num_scan, num_pharmacy, num_xray, num_billing, num_dressing, num_injection, num_bedspace
-    global wait_times, processing_times, flow
-    global reg_wait_times, cons_wait_times, phar_wait_times, dress_wait_times
-    global xray_wait_times, scan_wait_times, bill_wait_times, inj_wait_times, bedspace_wait_times
+    global delay_times, processing_times, flow
+    global reg_delay_times, cons_delay_times, phar_delay_times, dress_delay_times
+    global xray_delay_times, scan_delay_times, bill_delay_times, inj_delay_times, bedspace_delay_times
     global reg_service_times, cons_service_times, phar_service_times, dress_service_times
     global xray_service_times, scan_service_times, bill_service_times, inj_service_times, bedspace_service_times
 
-    wait_times = []
+    delay_times = []
     processing_times = []
     flow = {}
     patients_in_system = []
@@ -874,15 +874,15 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
     num_injection = 0
     num_bedspace = 0
 
-    reg_wait_times = []
-    cons_wait_times = []
-    phar_wait_times = []
-    dress_wait_times = []
-    xray_wait_times = []
-    scan_wait_times = []
-    bill_wait_times = []
-    inj_wait_times = []
-    bedspace_wait_times = []
+    reg_delay_times = []
+    cons_delay_times = []
+    phar_delay_times = []
+    dress_delay_times = []
+    xray_delay_times = []
+    scan_delay_times = []
+    bill_delay_times = []
+    inj_delay_times = []
+    bedspace_delay_times = []
 
     reg_service_times = []
     cons_service_times = []
@@ -914,7 +914,7 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
         time_steps = np.arange(0, num_intervals * interval, interval) / 60  # Convert to minutes
 
         # Plot the heatmap
-        plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(15, 10))
         sns.heatmap(data, cmap="YlGnBu", xticklabels=10, yticklabels=services)
         plt.xlabel("Time (minutes)")
         plt.ylabel("Services")
@@ -991,8 +991,8 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
         env.run()
 
     # Generate plots and save data
-    if wait_times:
-        plot_wait_times(wait_times, path, 'wait_times.jpeg')
+    if delay_times:
+        plot_delay_times(delay_times, path, 'delay_times.jpeg')
     if processing_times:
         plot_process_times(processing_times, path, 'processing_times.jpeg')
 
@@ -1003,29 +1003,29 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
 
     # Save detailed data
     np.savetxt(os.path.join(path, 'visits_per_service.txt'), visits)
-    if any(reg_wait_times + cons_wait_times + phar_wait_times + dress_wait_times +
-           xray_wait_times + scan_wait_times + bill_wait_times + inj_wait_times + bedspace_wait_times):
-        np.savetxt(os.path.join(path, 'wait_times_per_process.txt'), reg_wait_times + cons_wait_times + phar_wait_times +
-                   dress_wait_times + xray_wait_times + scan_wait_times + bill_wait_times +
-                   inj_wait_times + bedspace_wait_times)
+    if any(reg_delay_times + cons_delay_times + phar_delay_times + dress_delay_times +
+           xray_delay_times + scan_delay_times + bill_delay_times + inj_delay_times + bedspace_delay_times):
+        np.savetxt(os.path.join(path, 'delay_times_per_process.txt'), reg_delay_times + cons_delay_times + phar_delay_times +
+                   dress_delay_times + xray_delay_times + scan_delay_times + bill_delay_times +
+                   inj_delay_times + bedspace_delay_times)
     if any(reg_service_times + cons_service_times + phar_service_times + dress_service_times +
            xray_service_times + scan_service_times + bill_service_times + inj_service_times + bedspace_service_times):
         np.savetxt(os.path.join(path, 'service_times_per_process.txt'), reg_service_times + cons_service_times + phar_service_times +
                    dress_service_times + xray_service_times + scan_service_times + bill_service_times +
                    inj_service_times + bedspace_service_times)
 
-    # Calculate average wait times and service times per service
+    # Calculate average delay times and service times per service
     service_labels = ['R', 'C', 'P', 'D', 'X', 'S', 'B', 'I', 'Bed']
-    average_wait_times = [
-        np.mean(reg_wait_times) if reg_wait_times else 0,
-        np.mean(cons_wait_times) if cons_wait_times else 0,
-        np.mean(phar_wait_times) if phar_wait_times else 0,
-        np.mean(dress_wait_times) if dress_wait_times else 0,
-        np.mean(xray_wait_times) if xray_wait_times else 0,
-        np.mean(scan_wait_times) if scan_wait_times else 0,
-        np.mean(bill_wait_times) if bill_wait_times else 0,
-        np.mean(inj_wait_times) if inj_wait_times else 0,
-        np.mean(bedspace_wait_times) if bedspace_wait_times else 0
+    average_delay_times = [
+        np.mean(reg_delay_times) if reg_delay_times else 0,
+        np.mean(cons_delay_times) if cons_delay_times else 0,
+        np.mean(phar_delay_times) if phar_delay_times else 0,
+        np.mean(dress_delay_times) if dress_delay_times else 0,
+        np.mean(xray_delay_times) if xray_delay_times else 0,
+        np.mean(scan_delay_times) if scan_delay_times else 0,
+        np.mean(bill_delay_times) if bill_delay_times else 0,
+        np.mean(inj_delay_times) if inj_delay_times else 0,
+        np.mean(bedspace_delay_times) if bedspace_delay_times else 0
     ]
 
     average_service_times = [
@@ -1043,11 +1043,11 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
 
     # Compute summary statistics
 
-    avg_wait_time = round(np.mean(wait_times), 2) if wait_times else 0
+    avg_delay_time = round(np.mean(delay_times), 2) if delay_times else 0
 
-    max_wait_time = round(np.max(wait_times), 2) if wait_times else 0
+    max_delay_time = round(np.max(delay_times), 2) if delay_times else 0
 
-    min_wait_time = round(np.min(wait_times), 2) if wait_times else 0
+    min_delay_time = round(np.min(delay_times), 2) if delay_times else 0
 
 
 
@@ -1060,8 +1060,8 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
 
 
 
-    # Plot average wait times
-    plot_service_wait_times(service_labels, average_wait_times, path, "average_wait_times_per_service.jpeg")
+    # Plot average delay times
+    plot_service_delay_times(service_labels, average_delay_times, path, "average_delay_times_per_service.jpeg")
 
     # Plot average service times
     plot_service_process_times(service_labels, average_service_times, path, "average_service_times_per_service.jpeg")
@@ -1101,21 +1101,21 @@ def run_simulation(ui_inputs, current_index, init_csv_path="init.csv", baseline_
         "flow_data_csv": os.path.join(path, 'flow_data.csv') if flow else None,
         "visit_counts": labeled_visit_counts,
         "plots": {
-            "wait_times": os.path.join(path, 'wait_times.jpeg') if wait_times else None,
+            "delay_times": os.path.join(path, 'delay_times.jpeg') if delay_times else None,
             "processing_times": os.path.join(path, 'processing_times.jpeg') if processing_times else None,
             "visits_per_service": os.path.join(path, 'num_visits_per_service.jpeg') if any(visits) else None,
-            "average_wait_times_per_service": os.path.join(path, 'average_wait_times_per_service.jpeg') if wait_times else None,
+            "average_delay_times_per_service": os.path.join(path, 'average_delay_times_per_service.jpeg') if delay_times else None,
             "average_service_times_per_service": os.path.join(path, 'average_service_times_per_service.jpeg') if reg_service_times else None,
             "patients_in_system": os.path.join(path, "patients_in_system.jpeg") if patients_in_system else None,
             "patient_flow_heatmap": os.path.join(path, "patient_flow_heatmap.jpeg") if service_counts else None,
         },
         "logs": log_file_path,
-        "wait_times": wait_times,
+        "delay_times": delay_times,
         "processing_times": processing_times,
         "summary": {
-            "avg_wait_time": avg_wait_time,
-            "max_wait_time": max_wait_time,
-            "min_wait_time": min_wait_time,
+            "avg_delay_time": avg_delay_time,
+            "max_delay_time": max_delay_time,
+            "min_delay_time": min_delay_time,
             "critical_patients": critical_patients,
             "non_critical_patients": non_critical_patients,
         },
@@ -1146,14 +1146,14 @@ if __name__ == "__main__":
         print(f"Flow data saved to: {results['flow_data_csv']}")
     print(f"Visit counts per service: {results['visit_counts']}")
     print("Generated plots:")
-    if results['plots']['wait_times']:
-        print(f" - Wait Times Plot: {results['plots']['wait_times']}")
+    if results['plots']['delay_times']:
+        print(f" - Delay Times Plot: {results['plots']['delay_times']}")
     if results['plots']['processing_times']:
         print(f" - Processing Times Plot: {results['plots']['processing_times']}")
     if results['plots']['visits_per_service']:
         print(f" - Visits Per Service Plot: {results['plots']['visits_per_service']}")
-    if results['plots']['average_wait_times_per_service']:
-        print(f" - Average Wait Times Per Service Plot: {results['plots']['average_wait_times_per_service']}")
+    if results['plots']['average_delay_times_per_service']:
+        print(f" - Average Delay Times Per Service Plot: {results['plots']['average_delay_times_per_service']}")
     if results['plots']['average_service_times_per_service']:
         print(f" - Average Service Times Per Service Plot: {results['plots']['average_service_times_per_service']}")
     if results['logs']:

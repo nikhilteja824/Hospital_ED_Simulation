@@ -12,7 +12,7 @@
         <form method="POST" action="/" class="mb-4">
             <div class="form-group">
                 <label for="num_patients">Number of Patients:</label>
-                <input type="number" class="form-control" id="num_patients" name="num_patients" value="100" required>
+                <input type="number" class="form-control" id="num_patients" name="num_patients" value="50" required>
             </div>
             <!-- <div class="form-group">
                 <label for="arrival_rate">Arrival Rate of Patients:</label>
@@ -24,7 +24,7 @@
             </div>
             <div class="form-group">
                 <label for="num_doctors">Number of Doctors:</label>
-                <input type="number" class="form-control" id="num_doctors" name="num_doctors" value="15" required>
+                <input type="number" class="form-control" id="num_doctors" name="num_doctors" value="10" required>
             </div>
             <div class="form-group">
                 <label for="num_pharmacy_counters">Number of Pharmacy Counters:</label>
@@ -35,16 +35,16 @@
                 <input type="number" class="form-control" id="num_billing_counters" name="num_billing_counters" value="4" required>
             </div>
             <div class="form-group">
-                <label for="num_xray_counters">Number of X-Ray Counters:</label>
+                <label for="num_xray_counters">Number of X-Ray Rooms:</label>
                 <input type="number" class="form-control" id="num_xray_counters" name="num_xray_counters" value="3" required>
             </div>
             <div class="form-group">
-                <label for="num_scan_counters">Number of Scan Counters:</label>
+                <label for="num_scan_counters">Number of Scanning Rooms:</label>
                 <input type="number" class="form-control" id="num_scan_counters" name="num_scan_counters" value="4" required>
             </div>
             <div class="form-group">
                 <label for="num_bedspaces">Number of Bedspaces:</label>
-                <input type="number" class="form-control" id="num_bedspaces" name="num_bedspaces" value="15" required>
+                <input type="number" class="form-control" id="num_bedspaces" name="num_bedspaces" value="20" required>
             </div>
             <button type="submit" class="btn btn-primary">Run Simulation</button>
         </form>
@@ -61,9 +61,9 @@
             </ul>
             <p><strong>Other Stats:</strong></p>
             <ul>
-                <li>Average Wait Time: {{ results.summary.avg_wait_time }} minutes</li>
-                <li>Maximum Wait Time: {{ results.summary.max_wait_time }} minutes</li>
-                <!-- <li>Minimum Wait Time: {{ results.summary.min_wait_time }} minutes</li> -->
+                <li>Average Delay Time: {{ results.summary.avg_delay_time }} minutes</li>
+                <li>Maximum Delay Time: {{ results.summary.max_delay_time }} minutes</li>
+                <!-- <li>Minimum Delay Time: {{ results.summary.min_delay_time }} minutes</li> -->
                 <li>Critical Patients: {{ results.summary.critical_patients }}</li>
                 <li>Non-Critical Patients: {{ results.summary.non_critical_patients }}</li>       
             </ul>
