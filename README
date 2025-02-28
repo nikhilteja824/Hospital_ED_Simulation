@@ -85,37 +85,37 @@ This project simulates patient flow through a hospital system using SimPy and pr
 ## Visualizations
 
 ### 1. Average Service Times Per Service
-![Average Service Times Per Service](static/results/average_service_times_per_service.jpeg)
+![Average Service Times Per Service](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/average_service_times_per_service.jpeg)
 
 ---
 
 ### 2. Average Wait Times Per Service
-![Average Wait Times Per Service](static/results/average_wait_times_per_service.jpeg)
+![Average Wait Times Per Service](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/average_wait_times_per_service.jpeg)
 
 ---
 
 ### 3. Patient Flow Heatmap
-![Patient Flow Heatmap](static/results/patient_flow_heatmap.jpeg)
+![Patient Flow Heatmap](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/patient_flow_heatmap.jpeg)
 
 ---
 
 ### 4. Number of Visits Per Service
-![Number of Visits Per Service](static/results/num_visits_per_service.jpeg)
+![Number of Visits Per Service](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/num_visits_per_service.jpeg)
 
 ---
 
 ### 5. Patients in System Over Time
-![Patients in System Over Time](static/results/patients_in_system.jpeg)
+![Patients in System Over Time](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/patients_in_system.jpeg)
 
 ---
 
 ### 6. Processing Times
-![Processing Times](static/results/processing_times.jpeg)
+![Processing Times](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/processing_times.jpeg)
 
 ---
 
 ### 7. Wait Times
-![Wait Times](static/results/wait_times.jpeg)
+![Wait Times](https://github.com/nikhilteja824/Hospital_ED_Simulation/tree/master/static/results/wait_times.jpeg)
 
 ---
 
